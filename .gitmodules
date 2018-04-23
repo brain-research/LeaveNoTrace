@@ -1,0 +1,3 @@
+[submodule "coach"]
+	path = coach
+	url = https://github.com/NervanaSystems/coach.git
