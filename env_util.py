@@ -1,11 +1,24 @@
-import tensorflow as tf
+# Copyright 2018 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from gym.envs.toy_text.frozen_lake import FrozenLakeEnv as _FrozenLakeEnv
 from gym.envs.mujoco.hopper import HopperEnv as _HopperEnv
-import numpy as np
 from gym import spaces
-import gym
 from gym.wrappers.time_limit import TimeLimit
-from gym import Wrapper
+
+import numpy as np
+
 
 def get_env(env_name, safety_param=0):
     # Reset reward should be in [-1, 0]
@@ -21,21 +34,30 @@ def get_env(env_name, safety_param=0):
         env = FrozenLakeEnv(map_name=map_name)
         done_state = np.zeros(env.nS)
         done_state[0] = 1
-        reset_done_fn = lambda s: np.all(s == done_state)
-        reset_reward_fn = lambda s: float(reset_done_fn(s)) - 1.0
+
+        def reset_done_fn(s):
+            return np.all(s == done_state)
+
+        def reset_reward_fn(s):
+            float(reset_done_fn(s)) - 1.0
+
         agent_type = 'DDQNAgent'
     elif env_name == 'hopper':
         env = HopperEnv()
+
         def reset_done_fn(s):
             height = s[0]
             ang = s[1]
             return (height > .7) and (abs(ang) < .2)
-        reset_reward_fn = lambda s: float(reset_done_fn(s)) - 1.0
+
+        def reset_reward_fn(s):
+            return float(reset_done_fn(s)) - 1.0
+
         agent_type = 'DDPGAgent'
         max_episode_steps = 1000
         num_training_iterations = 1000000
 
-    else:  # TODO: add more environments
+    else:
         raise ValueError('Unknown environment: %s' % env_name)
     env = TimeLimit(env, max_episode_steps=max_episode_steps)
 
@@ -51,6 +73,7 @@ def get_env(env_name, safety_param=0):
     }
     return (env, lnt_params, agent_params)
 
+
 class FrozenLakeEnv(_FrozenLakeEnv):
     """Modified version of FrozenLake-v0.
 
@@ -58,7 +81,8 @@ class FrozenLakeEnv(_FrozenLakeEnv):
     2. Make the goal state reversible
     """
     def __init__(self, map_name):
-        super(FrozenLakeEnv, self).__init__(map_name=map_name, is_slippery=False)
+        super(FrozenLakeEnv, self).__init__(map_name=map_name,
+                                            is_slippery=False)
         self.observation_space = spaces.Box(low=np.zeros(self.nS),
                                             high=np.ones(self.nS))
         # Make the goal state not terminate
@@ -72,7 +96,6 @@ class FrozenLakeEnv(_FrozenLakeEnv):
             2: [(1.0, goal_s, 1.0, True)],
             3: [(1.0, up_s, 0.0, True)],
         }
-
 
     def _s_to_one_hot(self, s):
         one_hot = np.zeros(self.nS)
@@ -91,10 +114,10 @@ class FrozenLakeEnv(_FrozenLakeEnv):
         one_hot = self._s_to_one_hot(s)
         return one_hot
 
+
 class HopperEnv(_HopperEnv):
     """Modified version of Hopper-v1."""
 
     def step(self, action):
         (obs, r, done, info) = super(HopperEnv, self).step(action)
         return (obs, r, False, info)
-

@@ -3,17 +3,7 @@
 ### What is "Leave No Trace"?
 *Leave No Trace* is an algorithm for safe reinforcement learning. The key idea is that an agent should only do things that it can undo. For example, a robot should not break a glass, because it will be unable to put it back together; a robot should not walk off a cliff because it cannot un-fall off the cliff.
 
-Leave No Trace was proposed in [Leave no Trace: Learning to Reset for Safe and Autonomous Reinforcement Learning](https://arxiv.org/pdf/1711.06782.pdf). Videos of the algorithm are shown on the [project website](https://sites.google.com/site/mlleavenotrace/). If you use this code, please consider including the following citation:
-```
-@inproceedings{
-  eysenbach2018leave,
-  title={Leave no Trace: Learning to Reset for Safe and Autonomous Reinforcement Learning},
-  author={Benjamin Eysenbach and Shixiang Gu and Julian Ibarz and Sergey Levine},
-  booktitle={International Conference on Learning Representations},
-  year={2018},
-  url={https://openreview.net/forum?id=S1vuO-bCW},
-}
-```
+Leave No Trace was proposed in [Leave no Trace: Learning to Reset for Safe and Autonomous Reinforcement Learning](https://arxiv.org/pdf/1711.06782.pdf). Videos of the algorithm are shown on the [project website](https://sites.google.com/site/mlleavenotrace/). If you use this code, please consider including the citation at the bottom of this page.
 
 ##### How does Leave no Trace work?
 *Leave No Trace* works by learning two policies. The *forward policy* attempts to complete the main task, such as navigating a maze or running forwards. The *reset policy* attempts to undo the actions of the forward policy. If the forward policy is navigating a maze, the reset policy learns how to navigate back to the start. If the forward policy is running forwards, the reset policy learns how to run back to the start.
@@ -44,7 +34,7 @@ Agent(env=safe_env, name='forward_agent', **agent_params).improve()
 
   ```git clone sso://user/eysenbach/LeaveNoTrace```
 
-1. Install coach
+1. Install coach. In the dialogue that appears, only install the coach dependencies
 
   ```
   cd coach
@@ -53,7 +43,6 @@ Agent(env=safe_env, name='forward_agent', **agent_params).improve()
   git submodule update
   ./install.sh
   ```
-  In the dialogue that appears, only install the coach dependencies
   requirements.
 
 2. Install the other dependencies.
@@ -76,6 +65,8 @@ After training, you should see a plot that looks like the one below. The green d
 
 ##### Adding new environments
 
+Coming soon!
+
 
 ##### Debugging
 
@@ -86,3 +77,28 @@ Traceback (most recent call last):
     from pip import main
 ImportError: cannot import name 'main'
 ```
+
+### Miscellany
+
+##### Citation
+If you use this code, please consider including the following citation:
+```
+@inproceedings{
+  eysenbach2018leave,
+  title={Leave no Trace: Learning to Reset for Safe and Autonomous Reinforcement Learning},
+  author={Benjamin Eysenbach and Shixiang Gu and Julian Ibarz and Sergey Levine},
+  booktitle={International Conference on Learning Representations},
+  year={2018},
+  url={https://openreview.net/forum?id=S1vuO-bCW},
+}
+```
+
+##### Thanks
+We thank Sergio Guadarrama, Oscar Ramirez, and Anoop Korattikara for
+implementing DDPG and thank Peter Pastor for insightful discussions.
+
+##### Funding
+Work done while Ben Eysenbach was a member of the Google Brain Residency Program (g.co/brainresidency).
+
+##### Legal
+"This is not an officially supported Google product."

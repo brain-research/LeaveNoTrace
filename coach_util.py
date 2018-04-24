@@ -1,18 +1,29 @@
+# Copyright 2018 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import sys
 import os
 sys.path.append(os.path.join(sys.path[0], 'coach'))
 
-from coach.agents import DQNAgent as _DQNAgent
 from coach.agents import DDQNAgent as _DDQNAgent
 from coach.agents import DDPGAgent as _DDPGAgent
 from coach.configurations import Preset, DQN, DDPG, GymVectorObservation, ExplorationParameters, OUExploration
-from coach.memories.memory import Transition
-
-from coach.utils import RunPhase
 from coach.environments.gym_environment_wrapper import GymEnvironmentWrapper
-from coach.environments.environment_wrapper import EnvironmentWrapper
-import tensorflow as tf
+from coach.memories.memory import Transition
+from coach.utils import RunPhase
 
+import tensorflow as tf
 
 
 def Agent(env, **kwargs):
@@ -24,11 +35,13 @@ def Agent(env, **kwargs):
     else:
         raise ValueError('Unknown agent_type: %s' % agent_type)
 
-# Overwrite the agents to automatically use the default parameters
+
+# Overwrite the coach agents to automatically use the default parameters
 class DDQNAgent(_DDQNAgent):
 
     def __init__(self, env, name, num_training_iterations=10000):
-        tuning_params = Preset(agent=DQN, env=GymVectorObservation, exploration=ExplorationParameters)
+        tuning_params = Preset(agent=DQN, env=GymVectorObservation,
+                               exploration=ExplorationParameters)
         tuning_params.sess = tf.Session()
         tuning_params.agent.discount = 0.99
         tuning_params.visualization.dump_csv = False
@@ -47,7 +60,8 @@ class DDQNAgent(_DDQNAgent):
 class DDPGAgent(_DDPGAgent):
 
     def __init__(self, env, name, num_training_iterations=1000000):
-        tuning_params = Preset(agent=DDPG, env=GymVectorObservation, exploration=OUExploration)
+        tuning_params = Preset(agent=DDPG, env=GymVectorObservation,
+                               exploration=OUExploration)
         tuning_params.sess = tf.Session()
         tuning_params.agent.discount = 0.999
         tuning_params.visualization.dump_csv = False
