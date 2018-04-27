@@ -58,7 +58,7 @@ class SafetyWrapper(Wrapper):
             (reset_action, _) = self._reset_agent.choose_action(
                 {'observation': obs[:, None]}, phase=RunPhase.TRAIN)
             (next_obs, r, _, info) = self.env.step(reset_action)
-            reset_reward = self._reset_reward_fn(next_obs)
+            reset_reward = self._reset_reward_fn(next_obs, reset_action)
             reset_done = self._reset_done_fn(next_obs)
             transition = Transition({'observation': obs[:, None]},
                                     reset_action, reset_reward,

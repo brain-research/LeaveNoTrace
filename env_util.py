@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from gym.envs.toy_text.frozen_lake import FrozenLakeEnv as _FrozenLakeEnv
-from gym.envs.mujoco.hopper import HopperEnv as _HopperEnv
-from gym import spaces
 from gym.wrappers.time_limit import TimeLimit
+from envs.frozen_lake import FrozenLakeEnv
+from envs.hopper import HopperEnv
+from envs.cliff_envs import CliffCheetahEnv, CliffWalkerEnv
+from envs.pusher import PusherEnv
+from envs.peg_insertion import PegInsertionEnv
 
 import numpy as np
 
@@ -38,10 +40,10 @@ def get_env(env_name, safety_param=0):
         def reset_done_fn(s):
             return np.all(s == done_state)
 
-        def reset_reward_fn(s):
+        def reset_reward_fn(s, a):
             float(reset_done_fn(s)) - 1.0
-
         agent_type = 'DDQNAgent'
+
     elif env_name == 'hopper':
         env = HopperEnv()
 
@@ -49,16 +51,83 @@ def get_env(env_name, safety_param=0):
             height = s[0]
             ang = s[1]
             return (height > .7) and (abs(ang) < .2)
-
-        def reset_reward_fn(s):
+        def reset_reward_fn(s, a):
             return float(reset_done_fn(s)) - 1.0
 
         agent_type = 'DDPGAgent'
         max_episode_steps = 1000
         num_training_iterations = 1000000
 
+    elif env_name == 'peg-insertion':
+        env = PegInsertionEnv()
+        def reset_done_fn(s):
+            a = np.zeros(env.action_space.shape[0])
+            (forward_reward, reset_reward) = env._get_rewards(s, a)
+            return (reset_reward > 0.7)
+        def reset_reward_fn(s, a):
+            (forward_reward, reset_reward) = env._get_rewards(s, a)
+            return reset_reward
+        max_episode_steps = 50
+        num_training_iterations = 1000000
+        agent_type = 'DDPGAgent'
+
+    elif env_name == 'pusher':
+        env = PusherEnv()
+        def reset_done_fn(s):
+            a = np.zeros(env.action_space.shape[0])
+            (forward_reward, reset_reward) = env._get_rewards(s, a)
+            return (reset_reward > 0.7)
+        def reset_reward_fn(s, a):
+            (forward_reward, reset_reward) = env._get_rewards(s, a)
+            return reset_reward
+        max_episode_steps = 100
+        num_training_iterations = 1000000
+        agent_type = 'DDPGAgent'
+
+    elif env_name == 'cliff-walker':
+        dist = 6
+        env = CliffWalkerEnv()
+        def reset_reward_fn(s):
+            a = np.zeros(env.action_space.shape[0])
+            (forward_reward, reset_reward) = env._get_rewards(s, a)
+            return (reset_reward > 0.7)
+        def reset_done_fn(s):
+            return (reset_reward_fn(s) > 0.7)
+        max_episode_steps = 500
+        num_training_iterations = 1000000
+        agent_type = 'DDPGAgent'
+
+    elif env_name == 'cliff-cheetah':
+        dist = 14
+        env = CliffCheetahEnv()
+        def reset_reward_fn(s):
+            a = np.zeros(env.action_space.shape[0])
+            (forward_reward, reset_reward) = env._get_rewards(s, a)
+            return (reset_reward > 0.7)
+        def reset_done_fn(s):
+            return (reset_reward_fn(s) > 0.7)
+        max_episode_steps = 500
+        agent_type = 'DDPGAgent'
+        num_training_iterations = 1000000
+
+    elif env_name == 'ball-in-cup':
+        # Only import control suite if used. All other environments can be
+        # used without the control suite dependency.
+        from dm_control.suite.ball_in_cup import BallInCup
+        env = BallInCup()
+        reset_state = np.array([0., 0., 0., -0.05, 0., 0., 0., 0.])
+        def reset_reward_fn(s):
+            dist = np.linalg.norm(reset_state - s)
+            return np.clip(1.0 - 0.5 * dist, 0, 1)
+        def reset_done_fn(s):
+            return (reset_reward_fn(s) > 0.7)
+        max_episode_steps = 50
+        agent_type = 'DDPGAgent'
+        num_training_iterations = 1000000
+
     else:
         raise ValueError('Unknown environment: %s' % env_name)
+
     env = TimeLimit(env, max_episode_steps=max_episode_steps)
 
     q_min = -1 * (1. - safety_param) * env._max_episode_steps
@@ -72,52 +141,3 @@ def get_env(env_name, safety_param=0):
         'agent_type': agent_type,
     }
     return (env, lnt_params, agent_params)
-
-
-class FrozenLakeEnv(_FrozenLakeEnv):
-    """Modified version of FrozenLake-v0.
-
-    1. Convert integer states to one hot encoding.
-    2. Make the goal state reversible
-    """
-    def __init__(self, map_name):
-        super(FrozenLakeEnv, self).__init__(map_name=map_name,
-                                            is_slippery=False)
-        self.observation_space = spaces.Box(low=np.zeros(self.nS),
-                                            high=np.ones(self.nS))
-        # Make the goal state not terminate
-        goal_s = self.nS - 1
-        left_s = goal_s - 1
-        up_s = goal_s - int(np.sqrt(self.nS))
-
-        self.P[goal_s] = {
-            0: [(1.0, left_s, 0.0, False)],
-            1: [(1.0, goal_s, 1.0, True)],
-            2: [(1.0, goal_s, 1.0, True)],
-            3: [(1.0, up_s, 0.0, True)],
-        }
-
-    def _s_to_one_hot(self, s):
-        one_hot = np.zeros(self.nS)
-        one_hot[s] = 1.
-        return one_hot
-
-    def step(self, a):
-        (s, r, done, info) = super(FrozenLakeEnv, self).step(a)
-        done = (s == self.nS - 1)  # Assume we can't detect dangerous states
-        one_hot = self._s_to_one_hot(s)
-        r -= 1  # Make the reward be in {-1, 0}
-        return (one_hot, r, done, info)
-
-    def reset(self):
-        s = super(FrozenLakeEnv, self).reset()
-        one_hot = self._s_to_one_hot(s)
-        return one_hot
-
-
-class HopperEnv(_HopperEnv):
-    """Modified version of Hopper-v1."""
-
-    def step(self, action):
-        (obs, r, done, info) = super(HopperEnv, self).step(action)
-        return (obs, r, False, info)
