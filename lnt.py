@@ -38,8 +38,8 @@ class SafetyWrapper(Wrapper):
         super(SafetyWrapper, self).__init__(env)
         self._reset_agent = reset_agent
         self._reset_agent.exploration_policy.change_phase(RunPhase.TRAIN)
-        self._reset_reward_fn = reset_reward_fn
-        self._reset_done_fn = reset_done_fn
+        self.env._reset_reward_fn = reset_reward_fn
+        self.env._reset_done_fn = reset_done_fn
         self._max_episode_steps = env._max_episode_steps
         self._q_min = q_min
         self._obs = env.reset()
@@ -58,8 +58,8 @@ class SafetyWrapper(Wrapper):
             (reset_action, _) = self._reset_agent.choose_action(
                 {'observation': obs[:, None]}, phase=RunPhase.TRAIN)
             (next_obs, r, _, info) = self.env.step(reset_action)
-            reset_reward = self._reset_reward_fn(next_obs, reset_action)
-            reset_done = self._reset_done_fn(next_obs)
+            reset_reward = self.env._reset_reward_fn(next_obs, reset_action)
+            reset_done = self.env._reset_done_fn(next_obs)
             transition = Transition({'observation': obs[:, None]},
                                     reset_action, reset_reward,
                                     {'observation': next_obs[:, None]},
@@ -142,7 +142,7 @@ class SafetyWrapper(Wrapper):
         ax2.plot(episodes, baseline_resets, 'b--')
 
         # Label the plot
-        ax1.set_ylabel('reward', color='g', fontsize=20)
+        ax1.set_ylabel('average step reward', color='g', fontsize=20)
         ax1.tick_params('y', colors='g')
         ax2.set_ylabel('num. resets', color='b', fontsize=20)
         ax2.tick_params('y', colors='b')

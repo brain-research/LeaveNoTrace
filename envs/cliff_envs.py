@@ -1,8 +1,22 @@
+# Copyright 2018 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from gym.envs.mujoco.half_cheetah import HalfCheetahEnv
 from gym.envs.mujoco.walker2d import Walker2dEnv
 from gym.envs.mujoco import mujoco_env
-import os
 import numpy as np
+import os
 
 
 def tolerance(x, bounds, margin):
@@ -10,7 +24,8 @@ def tolerance(x, bounds, margin):
     when x is within a certain margin outside the bounds.
     We've copied the function from [1] to reduce dependencies.
 
-    [1] Tassa, Yuval, et al. "DeepMind Control Suite." arXiv preprint arXiv:1801.00690 (2018).
+    [1] Tassa, Yuval, et al. "DeepMind Control Suite." arXiv preprint
+    arXiv:1801.00690 (2018).
     '''
     (lower, upper) = bounds
     if lower <= x <= upper:

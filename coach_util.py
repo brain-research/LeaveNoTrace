@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
 import os
+import sys
 sys.path.append(os.path.join(sys.path[0], 'coach'))
 
 from coach.agents import DDQNAgent as _DDQNAgent
@@ -31,6 +31,7 @@ def Agent(env, **kwargs):
     if agent_type == 'DDQNAgent':
         return DDQNAgent(env, **kwargs)
     elif agent_type == 'DDPGAgent':
+        raise NotImplementedError('Support for DDPG is not yet implemented')
         return DDPGAgent(env, **kwargs)
     else:
         raise ValueError('Unknown agent_type: %s' % agent_type)

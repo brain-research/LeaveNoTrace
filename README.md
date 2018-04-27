@@ -21,36 +21,44 @@ If you're interested in working on any of these open problems, feel free to reac
 
 We have implemented Leave No Trace as a *safety wrapper*. We wrap the environment in this projective layer to prevent an outside learning algorithm from taking dangerous actions. Under the hood, the safety wrapper learns the reset agent, and uses the reset agent to avoid taking dangerous actions. Leave no Trace abstracts away the safety problem, allowing users to learn safely without any modifications to their learning algorithm:
 ```
-# Add the safety wrapper to the environment
+# 1. Create a reset agent that will reset the environment
+reset_agent = Agent(env, name='reset_agent', **agent_params)
+
+# 2. Create a wrapper around the environment to protect it
 safe_env = SafetyWrapper(env=env, reset_agent=reset_agent, **lnt_params)
-# Do regular learning with the safe environment
+
+# 3. Safely learn to solve the task.
 Agent(env=safe_env, name='forward_agent', **agent_params).improve()
 ```
 
 
 ##### Installation
 
-0. Clone this repository
+1. Clone this repository
 
-  ```git clone sso://user/eysenbach/LeaveNoTrace```
+```
+git clone https://github.com/brain-research/LeaveNoTrace.git
+```
 
-1. Install coach. In the dialogue that appears, only install the coach dependencies
+2. Install coach. In the dialogue that appears, only install the coach dependencies
 
   ```
   cd coach
-  touch coach/__init__.py
   git submodule init
   git submodule update
   ./install.sh
   ```
-  requirements.
 
-2. Install the other dependencies.
+3. Install the other dependencies.
 
   ```
   pip3 install gym==0.9.3
   pip3 install mujoco-py==0.5.7
   ```
+
+If you run into any problems with installation, please create an issue or
+directly create a pull request for updating the documentation. Doing so will
+greatly help future users avoid the same problems.
 
 
 ##### Usage
@@ -63,20 +71,8 @@ Basic usage - activate the virtual environment and run the demo script.
 After training, you should see a plot that looks like the one below. The green dots show the average per-step reward throughout training. As expected, the agent's reward increases throughout training. The solid blue line shows the cumulative number of hard resets throughout training. Notice that fewer and fewer new hard resets are performed later in training, as the reset agent learns to automatically reset the agent.
 ![example plot](plot.png)
 
-##### Adding new environments
+This implementation of Leave No Trace currently only supports environments with discrete actions. Support for environments with continuous actions is coming in early May 2018!
 
-Coming soon!
-
-
-##### Debugging
-
-I get the following error when installing coach:
-```
-Traceback (most recent call last):
-  File "/usr/bin/pip3", line 9, in <module>
-    from pip import main
-ImportError: cannot import name 'main'
-```
 
 ### Miscellany
 
@@ -93,12 +89,11 @@ If you use this code, please consider including the following citation:
 }
 ```
 
-##### Thanks
-We thank Sergio Guadarrama, Oscar Ramirez, and Anoop Korattikara for
-implementing DDPG and thank Peter Pastor for insightful discussions.
-
 ##### Funding
-Work done while Ben Eysenbach was a member of the Google Brain Residency Program (g.co/brainresidency).
+Work done while Ben Eysenbach was a member of the Google Brain Residency Program <g.co/brainresidency>.
 
 ##### Legal
-"This is not an officially supported Google product."
+This is not an officially supported Google product.
+
+##### Contact
+Please send pull requests and file issues with @ben-eysenbach. For other correspondence, email <eysenbach@google.com>.

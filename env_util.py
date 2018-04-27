@@ -39,75 +39,23 @@ def get_env(env_name, safety_param=0):
 
         def reset_done_fn(s):
             return np.all(s == done_state)
-
         def reset_reward_fn(s, a):
-            float(reset_done_fn(s)) - 1.0
+            return float(reset_done_fn(s)) - 1.0
+
         agent_type = 'DDQNAgent'
 
     elif env_name == 'hopper':
         env = HopperEnv()
 
-        def reset_done_fn(s):
+        def reset_reward_fn(s):
             height = s[0]
             ang = s[1]
-            return (height > .7) and (abs(ang) < .2)
-        def reset_reward_fn(s, a):
+            return (height > .7) and (abs(ang) < .2) - 1.0
+        def reset_done_fn(s, a):
             return float(reset_done_fn(s)) - 1.0
 
         agent_type = 'DDPGAgent'
         max_episode_steps = 1000
-        num_training_iterations = 1000000
-
-    elif env_name == 'peg-insertion':
-        env = PegInsertionEnv()
-        def reset_done_fn(s):
-            a = np.zeros(env.action_space.shape[0])
-            (forward_reward, reset_reward) = env._get_rewards(s, a)
-            return (reset_reward > 0.7)
-        def reset_reward_fn(s, a):
-            (forward_reward, reset_reward) = env._get_rewards(s, a)
-            return reset_reward
-        max_episode_steps = 50
-        num_training_iterations = 1000000
-        agent_type = 'DDPGAgent'
-
-    elif env_name == 'pusher':
-        env = PusherEnv()
-        def reset_done_fn(s):
-            a = np.zeros(env.action_space.shape[0])
-            (forward_reward, reset_reward) = env._get_rewards(s, a)
-            return (reset_reward > 0.7)
-        def reset_reward_fn(s, a):
-            (forward_reward, reset_reward) = env._get_rewards(s, a)
-            return reset_reward
-        max_episode_steps = 100
-        num_training_iterations = 1000000
-        agent_type = 'DDPGAgent'
-
-    elif env_name == 'cliff-walker':
-        dist = 6
-        env = CliffWalkerEnv()
-        def reset_reward_fn(s):
-            a = np.zeros(env.action_space.shape[0])
-            (forward_reward, reset_reward) = env._get_rewards(s, a)
-            return (reset_reward > 0.7)
-        def reset_done_fn(s):
-            return (reset_reward_fn(s) > 0.7)
-        max_episode_steps = 500
-        num_training_iterations = 1000000
-        agent_type = 'DDPGAgent'
-
-    elif env_name == 'cliff-cheetah':
-        dist = 14
-        env = CliffCheetahEnv()
-        def reset_reward_fn(s):
-            a = np.zeros(env.action_space.shape[0])
-            (forward_reward, reset_reward) = env._get_rewards(s, a)
-            return (reset_reward > 0.7)
-        def reset_done_fn(s):
-            return (reset_reward_fn(s) > 0.7)
-        max_episode_steps = 500
-        agent_type = 'DDPGAgent'
         num_training_iterations = 1000000
 
     elif env_name == 'ball-in-cup':
@@ -118,10 +66,60 @@ def get_env(env_name, safety_param=0):
         reset_state = np.array([0., 0., 0., -0.05, 0., 0., 0., 0.])
         def reset_reward_fn(s):
             dist = np.linalg.norm(reset_state - s)
-            return np.clip(1.0 - 0.5 * dist, 0, 1)
+            return np.clip(1.0 - 0.5 * dist, 0, 1) - 1.0
         def reset_done_fn(s):
             return (reset_reward_fn(s) > 0.7)
         max_episode_steps = 50
+        agent_type = 'DDPGAgent'
+        num_training_iterations = 1000000
+
+    elif env_name == 'peg-insertion':
+        env = PegInsertionEnv()
+        def reset_reward_fn(s, a):
+            (forward_reward, reset_reward) = env.env._get_rewards(s, a)
+            return reset_reward - 1.0
+        def reset_done_fn(s):
+            a = np.zeros(env.action_space.shape[0])
+            return (reset_reward_fn(s, a) > 0.7)
+        max_episode_steps = 50
+        num_training_iterations = 1000000
+        agent_type = 'DDPGAgent'
+
+    elif env_name == 'pusher':
+        env = PusherEnv()
+        def reset_reward_fn(s, a):
+            (forward_reward, reset_reward) = env.env._get_rewards(s, a)
+            return reset_reward - 1.0
+        def reset_done_fn(s):
+            a = np.zeros(env.action_space.shape[0])
+            return (reset_reward_fn(s, a) > 0.7)
+        max_episode_steps = 100
+        num_training_iterations = 1000000
+        agent_type = 'DDPGAgent'
+
+    elif env_name == 'cliff-walker':
+        dist = 6
+        env = CliffWalkerEnv()
+        def reset_reward_fn(s, a):
+            (forward_reward, reset_reward) = env.env._get_rewards(s, a)
+            return (reset_reward > 0.7) - 1.0
+        def reset_done_fn(s):
+            a = np.zeros(env.action_space.shape[0])
+            return (reset_reward_fn(s, a) > 0.7)
+        max_episode_steps = 500
+        num_training_iterations = 1000000
+        agent_type = 'DDPGAgent'
+
+    elif env_name == 'cliff-cheetah':
+        dist = 14
+        env = CliffCheetahEnv()
+        def reset_reward_fn(s, a):
+            (forward_reward, reset_reward) = env.env._get_rewards(s, a)
+            return (reset_reward > 0.7) - 1.0
+        def reset_done_fn(s):
+            a = np.zeros(env.action_space.shape[0])
+            return (reset_reward_fn(s, a) > 0.7)
+        max_episode_steps = 500
         agent_type = 'DDPGAgent'
         num_training_iterations = 1000000
 

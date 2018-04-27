@@ -41,7 +41,7 @@ class PusherEnv(mujoco_env.MujocoEnv):
         obs = self._get_obs()
         done = False
 
-        (forward_shaped_reward, reset_shaped_reward) = self._get_rewards(a)
+        (forward_shaped_reward, reset_shaped_reward) = self._get_rewards(obs, a)
         if self._task == 'forward':
             r = forward_shaped_reward
         elif self._task == 'reset':
@@ -89,7 +89,8 @@ class PusherEnv(mujoco_env.MujocoEnv):
         assert 0 <= loss <= 1
         return reward
 
-    def _get_rewards(self, a):
+    def _get_rewards(self, s, a):
+        del s
         if not hasattr(self, '_goal'):
             print('Warning: goal or start has not been set')
             return (0, 0)

@@ -41,8 +41,8 @@ def learn_dangerously(env_name):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Let\'s do safe RL with Leave No Trace!')
-    env_list = ['small-gridworld', 'large-gridworld', 'hopper']
-    parser.add_argument('--env_name', type=str, default='FrozenLake-v0',
+    env_list = ['small-gridworld']
+    parser.add_argument('--env_name', type=str, default='small-gridworld',
                         help=('Name of the environment. The currently '
                               'supported environments are: %s') % env_list)
     parser.add_argument('--safety_param', type=float, default=0.3,

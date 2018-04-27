@@ -21,17 +21,17 @@ class PegInsertionEnv(mujoco_env.MujocoEnv):
 
     def _step(self, a):
         self.do_simulation(a, self.frame_skip)
-        ob = self._get_obs()
+        obs = self._get_obs()
         done = False
 
-        (insert_reward, remove_reward) = self._get_rewards()
+        (insert_reward, remove_reward) = self._get_rewards(obs, a)
         if self._task == 'insert':
             reward = insert_reward
         elif self._task == 'remove':
             reward = remove_reward
         else:
             raise ValueError('Unknown task: %s' % self._task)
-        return ob, reward, done, {}
+        return obs, reward, done, {}
 
     def viewer_setup(self):
         self.viewer.cam.trackbodyid = -1
@@ -50,19 +50,25 @@ class PegInsertionEnv(mujoco_env.MujocoEnv):
         self.set_state(qpos, qvel)
         return self._get_obs()
 
-    def _get_rewards(self):
+    def _get_rewards(self, s, a):
+        '''Compute the forward and reset rewards.
+        Note: We assume that the reward is computed on-policy, so the given
+        state is equal to the current observation.
+        '''
+        assert np.all(s == self._get_obs())
+        peg_pos = np.hstack([self.get_body_com('leg_bottom'),
+                            self.get_body_com('leg_top')])
+        peg_bottom_z = peg_pos[2]
         goal_pos = np.array([0.0, 0.3, -0.5, 0.0, 0.3, -0.2])
         start_pos = np.array([0.10600084, 0.15715909, 0.1496843, 0.24442536,
                               -0.09417238, 0.23726938])
-        peg_pos = np.hstack([self.get_body_com('leg_bottom'),
-                            self.get_body_com('leg_top')])
-        dist_to_goal = np.linalg.norm(goal_pos - peg_pos, ord=1)
+        dist_to_goal = np.linalg.norm(goal_pos - peg_pos)
         dist_to_start = np.linalg.norm(start_pos - peg_pos)
 
         peg_to_goal_reward = np.clip(1. - dist_to_goal, 0, 1)
         peg_to_start_reward = np.clip(1. - dist_to_start, 0, 1)
-        control_reward = np.clip(1. - 0.2 * np.linalg.norm(self.model.data.ctrl), 0, 1)
-        in_hole_reward = dist_to_goal < 0.1 and self.get_body_com('leg_bottom')[2] < -0.45
+        control_reward = np.clip(1 - 0.1 * np.dot(a, a), 0, 1)
+        in_hole_reward = dist_to_goal < 0.1 and self.get_body_com("leg_bottom")[2] < -0.45
 
         if self._sparse:
             insert_reward = 0.8 * in_hole_reward + 0.2 * control_reward
