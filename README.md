@@ -71,7 +71,7 @@ Basic usage - activate the virtual environment and run the demo script.
 After training, you should see a plot that looks like the one below. The green dots show the average per-step reward throughout training. As expected, the agent's reward increases throughout training. The solid blue line shows the cumulative number of hard resets throughout training. Notice that fewer and fewer new hard resets are performed later in training, as the reset agent learns to automatically reset the agent.
 ![example plot](plot.png)
 
-This implementation of Leave No Trace currently only supports environments with discrete action Additionally, this implementation does not support learning an ensemble of value functions. Support for environments with continuous actions and ensembles of value functions is coming in early May 2018!
+This implementation of Leave No Trace currently only supports environments with discrete actions. Additionally, this implementation does not support learning an ensemble of value functions. Support for environments with continuous actions and ensembles of value functions is coming in early May 2018!
 
 
 ### Miscellany
