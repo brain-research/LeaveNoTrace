@@ -28,7 +28,7 @@ def get_env(env_name, safety_param=0):
         if env_name == 'small-gridworld':
             map_name = '4x4'
             max_episode_steps = 30
-            num_training_iterations = 6000
+            num_training_iterations = 20000
         else:
             map_name = '8x8'
             max_episode_steps = 100
